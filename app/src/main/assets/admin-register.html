@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Registration - Campus Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" ></script>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 class="brand-title" style="font-size: 2.25rem;">Campus Hub</h1>
+        <p class="auth-subtitle">Create Administrator Account</p>
+      </div>
+
+      <div class="card">
+        <form id="admin-register-form" onsubmit="event.preventDefault(); handleRegister();">
+          <div class="form-group">
+            <label class="form-label" for="reg-admin-id">Admin ID</label>
+            <input type="text" id="reg-admin-id" class="form-control" placeholder="A-102" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Campus Administrator" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-username">Username</label>
+            <input type="text" id="reg-username" class="form-control" placeholder="admin_campus" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="admin@campushub.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="••••••••" minlength="4" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-passcode">Admin Registration Passcode</label>
+            <input type="password" id="reg-passcode" class="form-control" placeholder="Enter security passcode" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Register</button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="admin-login.html">Login here</a></p>
+        <p style="margin-top: 1rem;"><a href="index.html" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; width: auto; display: inline-flex;">← Back to Roles</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleRegister() {
+      const aid = document.getElementById("reg-admin-id").value;
+      const name = document.getElementById("reg-name").value;
+      const user = document.getElementById("reg-username").value;
+      const email = document.getElementById("reg-email").value;
+      const pass = document.getElementById("reg-password").value;
+      const passcode = document.getElementById("reg-passcode").value;
+      
+      window.registerAdmin(name, email, user, pass, aid, passcode);
+    }
+  </script>
+</body>
+</html>

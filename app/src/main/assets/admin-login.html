@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Campus Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" ></script>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 class="brand-title" style="font-size: 2.25rem;">Campus Hub</h1>
+        <p class="auth-subtitle">Administrator Portal Login</p>
+      </div>
+
+      <div class="card">
+        <form id="admin-login-form" onsubmit="event.preventDefault(); handleLogin();">
+          <div class="form-group">
+            <label class="form-label" for="login-admin-id">Admin ID</label>
+            <input type="text" id="login-admin-id" class="form-control" placeholder="A-101" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-username">Username</label>
+            <input type="text" id="login-username" class="form-control" placeholder="admin" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Sign In</button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        <p>Don't have an account? <a href="admin-register.html">Register here</a></p>
+        <p style="margin-top: 1rem;"><a href="index.html" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; width: auto; display: inline-flex;">← Back to Roles</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleLogin() {
+      const aid = document.getElementById("login-admin-id").value;
+      const user = document.getElementById("login-username").value;
+      const pass = document.getElementById("login-password").value;
+      loginAdmin(user, pass, aid);
+    }
+  </script>
+</body>
+</html>

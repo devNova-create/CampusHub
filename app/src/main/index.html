@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Hub - Student Management System</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./script.js" type="module"></script>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 class="brand-title large">Campus Hub</h1>
+        <p class="auth-subtitle">Select Your Role</p>
+      </div>
+
+      <div class="role-grid">
+        <!-- Student Role -->
+        <div class="role-card" onclick="window.location.href='student-login.html'" id="role-card-student">
+          <div class="role-icon">🎓</div>
+          <div class="role-info">
+            <h3>Student</h3>
+            <p>Access your attendance record, exam grades, and edit profile details.</p>
+          </div>
+        </div>
+
+        <!-- Teacher Role -->
+        <div class="role-card" onclick="window.location.href='teacher-login.html'" id="role-card-teacher">
+          <div class="role-icon">🧑‍🏫</div>
+          <div class="role-info">
+            <h3>Teacher</h3>
+            <p>Manage student attendance, enter exam marks, and handle grade profiles.</p>
+          </div>
+        </div>
+
+        <!-- Admin Role -->
+        <div class="role-card" onclick="window.location.href='admin-login.html'" id="role-card-admin">
+          <div class="role-icon">⚙️</div>
+          <div class="role-info">
+            <h3>Admin</h3>
+            <p>Configure student/teacher profiles, view overall statistics and reports.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <p>&copy; 2026 Campus Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

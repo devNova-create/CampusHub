@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Registration - Campus Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" ></script>
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 class="brand-title" style="font-size: 2.25rem;">Campus Hub</h1>
+        <p class="auth-subtitle">Create Teacher Account</p>
+      </div>
+
+      <div class="card">
+        <form id="teacher-register-form" onsubmit="event.preventDefault(); handleRegister();">
+          <div class="form-group">
+            <label class="form-label" for="reg-teacher-id">Teacher ID</label>
+            <input type="text" id="reg-teacher-id" class="form-control" placeholder="T-103" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Dr. Sarah Smith" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-username">Username</label>
+            <input type="text" id="reg-username" class="form-control" placeholder="teacher_smith" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="s.smith@campushub.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-dept">Department</label>
+            <input type="text" id="reg-dept" class="form-control" placeholder="Computer Science" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="••••••••" minlength="4" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Register</button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="teacher-login.html">Login here</a></p>
+        <p style="margin-top: 1rem;"><a href="index.html" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; width: auto; display: inline-flex;">← Back to Roles</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleRegister() {
+      const tid = document.getElementById("reg-teacher-id").value;
+      const name = document.getElementById("reg-name").value;
+      const user = document.getElementById("reg-username").value;
+      const email = document.getElementById("reg-email").value;
+      const dept = document.getElementById("reg-dept").value;
+      const pass = document.getElementById("reg-password").value;
+      
+      window.registerTeacher(name, email, user, pass, tid, dept);
+    }
+  </script>
+</body>
+</html>
