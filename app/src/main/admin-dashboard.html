@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./style.css">
   <script src="./script.js" type="module"></script>
 </head>
-<body onload="loadAdminDashboard();">
+<body onload="window.loadAdminDashboard();">
   <div class="dashboard-container">
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
@@ -39,7 +39,7 @@
       </ul>
       <div class="sidebar-footer">
         <li class="sidebar-menu-item" style="list-style: none;">
-          <a onclick="logout();" class="logout-trigger" style="color: #EF4444; background: rgba(239,68,68,0.08);">
+          <a onclick="window.logout();" class="logout-trigger" style="color: #EF4444; background: rgba(239,68,68,0.08);">
             <span>🚪</span> Logout
           </a>
         </li>
@@ -123,7 +123,7 @@
                 <input type="text" class="search-input" id="search-students" placeholder="Search by name or email..." oninput="filterStudentsTable();">
                 <span class="search-icon-svg">🔍</span>
               </div>
-              <button class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="openStudentModal();">Add Student</button>
+              <button class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="window.openStudentModal();">Add Student</button>
             </div>
 
             <div class="table-responsive">
@@ -156,7 +156,7 @@
                 <input type="text" class="search-input" id="search-teachers" placeholder="Search by teacher ID or name..." oninput="filterTeachersTable();">
                 <span class="search-icon-svg">🔍</span>
               </div>
-              <button class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="openTeacherModal();">Add Teacher</button>
+              <button class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="window.openTeacherModal();">Add Teacher</button>
             </div>
 
             <div class="table-responsive">
@@ -239,7 +239,7 @@
   <!-- Student Creation / Edit Modal -->
   <div class="modal-overlay" id="student-modal">
     <div class="modal-box">
-      <button class="modal-close" onclick="closeModal('student-modal');">&times;</button>
+      <button class="modal-close" onclick="window.closeModal('student-modal');">&times;</button>
       <h3 class="modal-title" id="student-modal-title">Add New Student</h3>
       <form id="admin-student-form">
         <div class="form-group">
@@ -278,7 +278,7 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-outline" onclick="closeModal('student-modal');">Cancel</button>
+          <button type="button" class="btn btn-outline" onclick="window.closeModal('student-modal');">Cancel</button>
           <button type="submit" class="btn btn-primary">Save Profile</button>
         </div>
       </form>
@@ -288,7 +288,7 @@
   <!-- Teacher Creation / Edit Modal -->
   <div class="modal-overlay" id="teacher-modal">
     <div class="modal-box">
-      <button class="modal-close" onclick="closeModal('teacher-modal');">&times;</button>
+      <button class="modal-close" onclick="window.closeModal('teacher-modal');">&times;</button>
       <h3 class="modal-title" id="teacher-modal-title">Add New Teacher</h3>
       <form id="admin-teacher-form">
         <div class="form-group">
@@ -322,7 +322,7 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-outline" onclick="closeModal('teacher-modal');">Cancel</button>
+          <button type="button" class="btn btn-outline" onclick="window.closeModal('teacher-modal');">Cancel</button>
           <button type="submit" class="btn btn-primary">Save details</button>
         </div>
       </form>
