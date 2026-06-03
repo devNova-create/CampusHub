@@ -1,44 +1,48 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const dbPath = path.resolve(__dirname, 'campushub.db');
+const { Pool } = require('pg');
 
-const db = new sqlite3.Database(dbPath, (err) => {
+const connectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/campushub";
+
+const pool = new Pool({
+  connectionString: connectionString,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+
+// Verify connection
+pool.connect((err, client, release) => {
   if (err) {
-    console.error('Error opening database', err.message);
+    console.error('Error connecting to PostgreSQL database:', err.stack);
   } else {
-    console.log('Connected to the SQLite database at:', dbPath);
+    console.log('Connected to the PostgreSQL database.');
+    release();
     initializeDatabase();
   }
 });
 
+// Helper wrapper to dynamically convert SQLite "?" placeholders to PostgreSQL "$1, $2..." placeholders
+function pgSql(sql) {
+  let index = 1;
+  return sql.replace(/\?/g, () => `$${index++}`);
+}
+
 // Helper wrapper to run SQL commands as Promises
-function dbRun(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
-  });
+async function dbRun(sql, params = []) {
+  const convertedSql = pgSql(sql);
+  const result = await pool.query(convertedSql, params);
+  return result;
 }
 
 // Helper wrapper to get a single row
-function dbGet(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
+async function dbGet(sql, params = []) {
+  const convertedSql = pgSql(sql);
+  const result = await pool.query(convertedSql, params);
+  return result.rows[0] || null;
 }
 
 // Helper wrapper to get multiple rows
-function dbAll(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+async function dbAll(sql, params = []) {
+  const convertedSql = pgSql(sql);
+  const result = await pool.query(convertedSql, params);
+  return result.rows;
 }
 
 async function initializeDatabase() {
@@ -46,23 +50,23 @@ async function initializeDatabase() {
     // Create Users table
     await dbRun(`
       CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE,
-        email TEXT UNIQUE,
-        password TEXT,
-        role TEXT,
-        name TEXT,
-        department TEXT
+        id VARCHAR(100) PRIMARY KEY,
+        username VARCHAR(100) UNIQUE,
+        email VARCHAR(100) UNIQUE,
+        password VARCHAR(100),
+        role VARCHAR(50),
+        name VARCHAR(100),
+        department VARCHAR(100)
       )
     `);
 
     // Create Profiles table for students
     await dbRun(`
       CREATE TABLE IF NOT EXISTS profiles (
-        student_id TEXT PRIMARY KEY,
-        roll_no TEXT,
-        class TEXT,
-        phone TEXT,
+        student_id VARCHAR(100) PRIMARY KEY,
+        roll_no VARCHAR(100),
+        class VARCHAR(100),
+        phone VARCHAR(100),
         address TEXT,
         FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
       )
@@ -71,10 +75,10 @@ async function initializeDatabase() {
     // Create Attendance table
     await dbRun(`
       CREATE TABLE IF NOT EXISTS attendance (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id TEXT,
-        date TEXT,
-        status TEXT,
+        id SERIAL PRIMARY KEY,
+        student_id VARCHAR(100),
+        date VARCHAR(50),
+        status VARCHAR(50),
         UNIQUE(student_id, date),
         FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
       )
@@ -83,9 +87,9 @@ async function initializeDatabase() {
     // Create Marks table
     await dbRun(`
       CREATE TABLE IF NOT EXISTS marks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id TEXT,
-        subject TEXT,
+        id SERIAL PRIMARY KEY,
+        student_id VARCHAR(100),
+        subject VARCHAR(100),
         score INTEGER,
         max_score INTEGER,
         UNIQUE(student_id, subject),
@@ -95,7 +99,7 @@ async function initializeDatabase() {
 
     // Seed data if database is empty
     const userCount = await dbGet("SELECT COUNT(*) as count FROM users");
-    if (userCount.count === 0) {
+    if (parseInt(userCount.count, 10) === 0) {
       console.log("Database is empty. Seeding default accounts and data...");
       await seedData();
     } else {
@@ -247,7 +251,7 @@ async function seedData() {
     for (let m of s.marks) {
       await dbRun(
         "INSERT INTO marks (student_id, subject, score, max_score) VALUES (?, ?, ?, ?)",
-        [s.id, m.subject, m.score, m.max_score]
+        [s.id, m.subject, m.score, m.maxScore]
       );
     }
   }
@@ -256,7 +260,7 @@ async function seedData() {
 }
 
 module.exports = {
-  db,
+  db: pool,
   dbRun,
   dbGet,
   dbAll
