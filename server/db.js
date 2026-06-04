@@ -97,6 +97,32 @@ async function initializeDatabase() {
       )
     `);
 
+    // Create Announcements table
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        author_name VARCHAR(100) NOT NULL,
+        author_role VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed default announcements if none exist
+    const announcementCount = await dbGet("SELECT COUNT(*) as count FROM announcements");
+    if (parseInt(announcementCount.count, 10) === 0) {
+      console.log("Seeding default announcements...");
+      await dbRun(
+        "INSERT INTO announcements (title, content, author_name, author_role) VALUES (?, ?, ?, ?)",
+        ["Welcome to CampusHub!", "We are excited to launch the new CampusHub system. Students can now view their academic details online.", "Campus Director", "admin"]
+      );
+      await dbRun(
+        "INSERT INTO announcements (title, content, author_name, author_role) VALUES (?, ?, ?, ?)",
+        ["Final Exam Schedule Posted", "The final exams schedule for all modules has been finalized. Please check your respective departments.", "Dr. Sarah Smith", "teacher"]
+      );
+    }
+
     // Seed data if database is empty
     const userCount = await dbGet("SELECT COUNT(*) as count FROM users");
     if (parseInt(userCount.count, 10) === 0) {

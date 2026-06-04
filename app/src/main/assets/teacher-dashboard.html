@@ -32,6 +32,11 @@
           </a>
         </li>
         <li class="sidebar-menu-item">
+          <a data-tab="announcements">
+            <span>📢</span> Announcements
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
           <a data-tab="profile">
             <span>👤</span> Profile
           </a>
@@ -159,6 +164,41 @@
                   <!-- Rendered dynamically from script.js -->
                 </tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB: ANNOUNCEMENTS -->
+        <!-- ========================================== -->
+        <section id="announcements" class="tab-section">
+          <div class="content-grid" style="grid-template-columns: 1fr 1.5fr; gap: 1.5rem;">
+            <!-- Posting form -->
+            <div class="section-card">
+              <div class="section-header">
+                <h3 class="section-title"><span>📢</span> Publish Announcement</h3>
+              </div>
+              <form onsubmit="event.preventDefault(); window.postAnnouncement('teacher');">
+                <div class="form-group">
+                  <label class="form-label" for="teacher-announcement-title">Title</label>
+                  <input type="text" id="teacher-announcement-title" class="form-control" placeholder="Announcement Title" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="teacher-announcement-content">Content</label>
+                  <textarea id="teacher-announcement-content" class="form-control" rows="5" placeholder="Write your announcement details here..." style="resize: vertical; font-family: inherit;" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Publish Notice</button>
+              </form>
+            </div>
+
+            <!-- Sent announcements list -->
+            <div class="section-card">
+              <div class="section-header">
+                <h3 class="section-title"><span>🔔</span> Board Notices</h3>
+              </div>
+              <div id="teacher-announcements-list" style="max-height: 450px; overflow-y: auto; padding-right: 0.25rem;">
+                <!-- Rendered dynamically from script.js -->
+              </div>
             </div>
           </div>
         </section>

@@ -427,6 +427,49 @@ app.post('/api/marks', async (req, res) => {
 });
 
 
+// ========================================================
+// ANNOUNCEMENTS ENDPOINTS
+// ========================================================
+
+// Get all announcements
+app.get('/api/announcements', async (req, res) => {
+  try {
+    const announcements = await dbAll("SELECT id, title, content, author_name as authorName, author_role as authorRole, created_at as createdAt FROM announcements ORDER BY id DESC");
+    res.json(announcements);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create an announcement
+app.post('/api/announcements', async (req, res) => {
+  const { title, content, authorName, authorRole } = req.body;
+  if (!title || !content || !authorName || !authorRole) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    await dbRun(
+      "INSERT INTO announcements (title, content, author_name, author_role) VALUES (?, ?, ?, ?)",
+      [title, content, authorName, authorRole]
+    );
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete an announcement
+app.delete('/api/announcements/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await dbRun("DELETE FROM announcements WHERE id = ?", [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Campus Hub backend server running on http://localhost:${PORT}`);

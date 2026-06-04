@@ -36,6 +36,11 @@
             <span>📄</span> Campus Reports
           </a>
         </li>
+        <li class="sidebar-menu-item">
+          <a data-tab="announcements">
+            <span>📢</span> Announcements
+          </a>
+        </li>
       </ul>
       <div class="sidebar-footer">
         <li class="sidebar-menu-item" style="list-style: none;">
@@ -229,6 +234,41 @@
               </div>
             </div>
 
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: ANNOUNCEMENTS -->
+        <!-- ========================================== -->
+        <section id="announcements" class="tab-section">
+          <div class="content-grid" style="grid-template-columns: 1fr 1.5fr; gap: 1.5rem;">
+            <!-- Posting form -->
+            <div class="section-card">
+              <div class="section-header">
+                <h3 class="section-title"><span>📢</span> Publish Announcement</h3>
+              </div>
+              <form onsubmit="event.preventDefault(); window.postAnnouncement('admin');">
+                <div class="form-group">
+                  <label class="form-label" for="admin-announcement-title">Title</label>
+                  <input type="text" id="admin-announcement-title" class="form-control" placeholder="Announcement Title" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="admin-announcement-content">Content</label>
+                  <textarea id="admin-announcement-content" class="form-control" rows="5" placeholder="Write announcement details here..." style="resize: vertical; font-family: inherit;" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Publish Notice</button>
+              </form>
+            </div>
+
+            <!-- Manage announcements list with delete buttons -->
+            <div class="section-card">
+              <div class="section-header">
+                <h3 class="section-title"><span>🔔</span> Board Notices Manager</h3>
+              </div>
+              <div id="admin-announcements-list" style="max-height: 450px; overflow-y: auto; padding-right: 0.25rem;">
+                <!-- Rendered dynamically from script.js -->
+              </div>
+            </div>
           </div>
         </section>
 

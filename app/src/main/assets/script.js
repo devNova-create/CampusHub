@@ -338,6 +338,7 @@ async function loadStudentDashboard() {
   protectDashboard("student");
   displayUserProfileInfo("student");
   setupDashboardTabs();
+  await loadAnnouncements();
   
   const session = getSession();
   if (!session) return;
@@ -516,6 +517,7 @@ async function loadTeacherDashboard() {
   protectDashboard("teacher");
   displayUserProfileInfo("teacher");
   setupDashboardTabs();
+  await loadAnnouncements();
 
   // Set default date value for attendance
   const attDateInput = document.getElementById("attendance-date-select");
@@ -780,6 +782,7 @@ async function loadAdminDashboard() {
   protectDashboard("admin");
   displayUserProfileInfo("admin");
   setupDashboardTabs();
+  await loadAnnouncements();
 
   // Render lists & metrics
   await renderAdminStudents();
@@ -1233,6 +1236,189 @@ function closeModal(modalId) {
   if (modal) modal.classList.remove("active");
 }
 
+// ==========================================
+// ANNOUNCEMENTS MODULE
+// ==========================================
+async function loadAnnouncements() {
+  const session = getSession();
+  if (!session) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/announcements`);
+    if (!res.ok) throw new Error("Failed to fetch announcements");
+    const announcements = await res.json();
+
+    // 1. Student Dashboard View
+    const studentList = document.getElementById("student-announcements-list");
+    if (studentList) {
+      if (announcements.length === 0) {
+        studentList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px; border:1px dashed rgba(255,255,255,0.1);">No announcements posted yet.</div>`;
+      } else {
+        studentList.innerHTML = announcements.map(ann => {
+          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+          });
+          const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
+          const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
+          
+          return `
+            <div class="announcement-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ann.title}</h4>
+                <span class="badge ${badgeClass}" style="flex-shrink: 0; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px;">${badgeLabel}</span>
+              </div>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                <span>By: <strong>${ann.authorName}</strong></span>
+                <span>${dateStr}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // 2. Teacher Dashboard View
+    const teacherList = document.getElementById("teacher-announcements-list");
+    if (teacherList) {
+      if (announcements.length === 0) {
+        teacherList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem;">No announcements posted yet.</div>`;
+      } else {
+        teacherList.innerHTML = announcements.map(ann => {
+          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+          });
+          const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
+          const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
+
+          return `
+            <div class="announcement-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ann.title}</h4>
+                <span class="badge ${badgeClass}">${badgeLabel}</span>
+              </div>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                <span>By: <strong>${ann.authorName}</strong></span>
+                <span>${dateStr}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // 3. Admin Dashboard View
+    const adminList = document.getElementById("admin-announcements-list");
+    if (adminList) {
+      if (announcements.length === 0) {
+        adminList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem;">No announcements posted yet.</div>`;
+      } else {
+        adminList.innerHTML = announcements.map(ann => {
+          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+          });
+          const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
+          const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
+
+          return `
+            <div class="announcement-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ann.title}</h4>
+                  <span class="badge ${badgeClass}" style="margin-top: 0.25rem; display: inline-block;">${badgeLabel}</span>
+                </div>
+                <button class="btn-action delete" title="Delete Announcement" onclick="deleteAnnouncement(${ann.id})" style="flex-shrink: 0;">🗑️</button>
+              </div>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                <span>By: <strong>${ann.authorName}</strong></span>
+                <span>${dateStr}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+  } catch (err) {
+    console.error("Error rendering announcements:", err);
+  }
+}
+
+async function postAnnouncement(role) {
+  const session = getSession();
+  if (!session) return;
+
+  let titleInput = null;
+  let contentInput = null;
+
+  if (role === "admin") {
+    titleInput = document.getElementById("admin-announcement-title");
+    contentInput = document.getElementById("admin-announcement-content");
+  } else if (role === "teacher") {
+    titleInput = document.getElementById("teacher-announcement-title");
+    contentInput = document.getElementById("teacher-announcement-content");
+  }
+
+  if (!titleInput || !contentInput) return;
+
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
+
+  if (!title || !content) {
+    showToast("Please fill in both title and content", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        content,
+        authorName: session.name,
+        authorRole: role
+      })
+    });
+
+    if (!res.ok) throw new Error("Failed to submit announcement");
+
+    titleInput.value = "";
+    contentInput.value = "";
+    showToast("Announcement published successfully!");
+    
+    // If in modal, close it
+    if (role === "admin") {
+      closeModal("announcement-modal");
+    } else if (role === "teacher") {
+      closeModal("teacher-announcement-modal");
+    }
+
+    await loadAnnouncements();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm("Are you sure you want to delete this announcement?")) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/announcements/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!res.ok) throw new Error("Failed to delete announcement");
+
+    showToast("Announcement deleted.");
+    await loadAnnouncements();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
 // Expose functions globally to window so that inline HTML event handlers work
 window.registerStudent = registerStudent;
 window.registerTeacher = registerTeacher;
@@ -1253,3 +1439,6 @@ window.openTeacherModal = openTeacherModal;
 window.deleteTeacher = deleteTeacher;
 window.openModal = openModal;
 window.closeModal = closeModal;
+window.loadAnnouncements = loadAnnouncements;
+window.postAnnouncement = postAnnouncement;
+window.deleteAnnouncement = deleteAnnouncement;
