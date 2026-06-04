@@ -734,7 +734,7 @@ async function renderTeacherMarksManager(students = null) {
         <td>${s.profile.class}</td>
         <td><strong>${avg}%</strong> Average score</td>
         <td>
-          <button class="btn btn-outline" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onclick="openTeacherMarksModal('${s.id}')">
+          <button class="btn btn-outline" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onclick="window.openTeacherMarksModal('${s.id}')">
             Enter Marks
           </button>
         </td>
@@ -923,8 +923,8 @@ async function renderAdminStudents() {
         <td>${s.email}</td>
         <td>
           <div style="display:flex; gap:0.5rem;">
-            <button class="btn-action" title="Edit Student" onclick="openStudentModal('${s.id}')">✏️</button>
-            <button class="btn-action delete" title="Delete Student" onclick="deleteStudent('${s.id}')">🗑️</button>
+            <button class="btn-action" title="Edit Student" onclick="window.openStudentModal('${s.id}')">✏️</button>
+            <button class="btn-action delete" title="Delete Student" onclick="window.deleteStudent('${s.id}')">🗑️</button>
           </div>
         </td>
       </tr>
@@ -1026,8 +1026,8 @@ async function renderAdminTeachers() {
         <td>${t.email}</td>
         <td>
           <div style="display:flex; gap:0.5rem;">
-            <button class="btn-action" title="Edit Teacher" onclick="openTeacherModal('${t.teacherId}')">✏️</button>
-            <button class="btn-action delete" title="Delete Teacher" onclick="deleteTeacher('${t.teacherId}')">🗑️</button>
+            <button class="btn-action" title="Edit Teacher" onclick="window.openTeacherModal('${t.teacherId}')">✏️</button>
+            <button class="btn-action delete" title="Delete Teacher" onclick="window.deleteTeacher('${t.teacherId}')">🗑️</button>
           </div>
         </td>
       </tr>
@@ -1328,7 +1328,7 @@ async function loadAnnouncements() {
                   <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ann.title}</h4>
                   <span class="badge ${badgeClass}" style="margin-top: 0.25rem; display: inline-block;">${badgeLabel}</span>
                 </div>
-                <button class="btn-action delete" title="Delete Announcement" onclick="deleteAnnouncement(${ann.id})" style="flex-shrink: 0;">🗑️</button>
+                <button class="btn-action delete" title="Delete Announcement" onclick="window.deleteAnnouncement(${ann.id})" style="flex-shrink: 0;">🗑️</button>
               </div>
               <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
