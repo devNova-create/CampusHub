@@ -6,6 +6,16 @@
   <title>Student Login - Campus Hub</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./script.js" type="module"></script>
+  <script>
+    try {
+      const session = JSON.parse(localStorage.getItem("campushub_session"));
+      if (session && session.role === "student") {
+        window.location.replace("student-dashboard.html");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  </script>
 </head>
 <body>
   <div class="auth-wrapper">

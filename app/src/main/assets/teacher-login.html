@@ -6,6 +6,16 @@
   <title>Teacher Login - Campus Hub</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" ></script>
+  <script>
+    try {
+      const session = JSON.parse(localStorage.getItem("campushub_session"));
+      if (session && session.role === "teacher") {
+        window.location.replace("teacher-dashboard.html");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  </script>
 </head>
 <body>
   <div class="auth-wrapper">

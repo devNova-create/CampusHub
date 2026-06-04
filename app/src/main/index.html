@@ -6,6 +6,16 @@
   <title>Campus Hub - Student Management System</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./script.js" type="module"></script>
+  <script>
+    try {
+      const session = JSON.parse(localStorage.getItem("campushub_session"));
+      if (session && session.role) {
+        window.location.replace(session.role + "-dashboard.html");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  </script>
 </head>
 <body>
   <div class="auth-wrapper">
