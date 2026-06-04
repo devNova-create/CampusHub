@@ -1,11 +1,6 @@
 // ==========================================
 // CAMPUS HUB - CORE JAVASCRIPT SYSTEM (API VERSION)
 // ==========================================
-
-// --- API Configuration ---
-// If running in WebView (file:// protocol), connect to local server using emulator host address 10.0.2.2.
-// If running in browser (Vite dev server), connect to localhost.
-// If running in WebView or browser, connect to the live Render backend.
 const API_BASE_URL = "https://campushub-api-33mv.onrender.com/api";
 
 // --- Session Helpers ---

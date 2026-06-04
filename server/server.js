@@ -128,8 +128,29 @@ app.post('/api/auth/register/student', async (req, res) => {
     }
 
     const students = await dbAll("SELECT id FROM users WHERE role = 'student'");
-    const newId = "S-" + (100 + students.length + 1);
-    const newRoll = "2026-S" + String(students.length + 1).padStart(2, '0');
+    let maxIdNum = 100;
+    for (let s of students) {
+      if (s.id && s.id.startsWith("S-")) {
+        const num = parseInt(s.id.substring(2), 10);
+        if (!isNaN(num) && num > maxIdNum) {
+          maxIdNum = num;
+        }
+      }
+    }
+    const newId = "S-" + (maxIdNum + 1);
+
+    let maxRollNum = 0;
+    const profiles = await dbAll("SELECT roll_no FROM profiles");
+    for (let p of profiles) {
+      if (p.roll_no && p.roll_no.includes("-S")) {
+        const parts = p.roll_no.split("-S");
+        const num = parseInt(parts[1], 10);
+        if (!isNaN(num) && num > maxRollNum) {
+          maxRollNum = num;
+        }
+      }
+    }
+    const newRoll = "2026-S" + String(maxRollNum + 1).padStart(2, '0');
 
     // Create user
     await dbRun(
@@ -246,7 +267,16 @@ app.post('/api/students', async (req, res) => {
     }
 
     const students = await dbAll("SELECT id FROM users WHERE role = 'student'");
-    const newId = "S-" + (100 + students.length + 1);
+    let maxIdNum = 100;
+    for (let s of students) {
+      if (s.id && s.id.startsWith("S-")) {
+        const num = parseInt(s.id.substring(2), 10);
+        if (!isNaN(num) && num > maxIdNum) {
+          maxIdNum = num;
+        }
+      }
+    }
+    const newId = "S-" + (maxIdNum + 1);
 
     await dbRun(
       "INSERT INTO users (id, username, email, password, role, name) VALUES (?, ?, ?, ?, ?, ?)",
