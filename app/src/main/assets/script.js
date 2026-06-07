@@ -1383,6 +1383,9 @@ async function loadAnnouncements() {
         }).join("");
       }
     }
+  } catch (err) {
+    console.error("Error loading announcements:", err);
+  }
 }
 
 async function postAnnouncement(role) {
