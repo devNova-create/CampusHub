@@ -311,7 +311,7 @@ a:hover {
   transition: transform var(--transition-normal);
 }
 
-.sidebar-brand {
+.sidebar-header {
   padding: 2rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -320,15 +320,10 @@ a:hover {
 }
 
 .sidebar-logo {
-  font-size: 1.25rem;
-  color: #FFFFFF;
-  background-color: var(--primary);
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
 }
 
 .sidebar-logo-text {
