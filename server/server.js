@@ -500,6 +500,106 @@ app.delete('/api/announcements/:id', async (req, res) => {
 });
 
 
+// ========================================================
+// EVENTS ENDPOINTS
+// ========================================================
+
+// Get all events
+app.get('/api/events', async (req, res) => {
+  try {
+    const events = await dbAll("SELECT id, name, department, description, date, created_at as createdAt FROM events ORDER BY id DESC");
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create an event
+app.post('/api/events', async (req, res) => {
+  const { name, department, description, date } = req.body;
+  if (!name || !department || !description) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  const eventDate = date || new Date().toISOString().split('T')[0];
+  try {
+    await dbRun(
+      "INSERT INTO events (name, department, description, date) VALUES (?, ?, ?, ?)",
+      [name, department, description, eventDate]
+    );
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update an event
+app.put('/api/events/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, department, description, date } = req.body;
+  if (!name || !department || !description || !date) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    await dbRun(
+      "UPDATE events SET name = ?, department = ?, description = ?, date = ? WHERE id = ?",
+      [name, department, description, date, id]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete an event
+app.delete('/api/events/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await dbRun("DELETE FROM events WHERE id = ?", [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Register a student for an event
+app.post('/api/events/:id/register', async (req, res) => {
+  const { id } = req.params;
+  const { fullName, rollNo, department, year, whatsapp } = req.body;
+  if (!fullName || !rollNo || !department || !year || !whatsapp) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    // Check if student with this roll number already registered for this event
+    const existing = await dbGet("SELECT id FROM event_registrations WHERE event_id = ? AND LOWER(roll_no) = LOWER(?)", [id, rollNo]);
+    if (existing) {
+      return res.status(400).json({ error: "This Roll Number is already registered for this event!" });
+    }
+    
+    await dbRun(
+      "INSERT INTO event_registrations (event_id, full_name, roll_no, department, year, whatsapp) VALUES (?, ?, ?, ?, ?, ?)",
+      [id, fullName, rollNo, department, year, whatsapp]
+    );
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get registrations for a specific event
+app.get('/api/events/:id/registrations', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const registrations = await dbAll(
+      "SELECT id, full_name as fullName, roll_no as rollNo, department, year, whatsapp, created_at as createdAt FROM event_registrations WHERE event_id = ? ORDER BY id DESC",
+      [id]
+    );
+    res.json(registrations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Campus Hub backend server running on http://localhost:${PORT}`);

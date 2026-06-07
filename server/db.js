@@ -109,6 +109,48 @@ async function initializeDatabase() {
       )
     `);
 
+    // Create Events table
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        department VARCHAR(100) NOT NULL,
+        description TEXT NOT NULL,
+        date VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create Event Registrations table
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS event_registrations (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+        full_name VARCHAR(100) NOT NULL,
+        roll_no VARCHAR(100) NOT NULL,
+        department VARCHAR(100) NOT NULL,
+        year VARCHAR(50) NOT NULL,
+        whatsapp VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(event_id, roll_no)
+      )
+    `);
+
+    // Seed default events if none exist
+    const eventCount = await dbGet("SELECT COUNT(*) as count FROM events");
+    if (parseInt(eventCount.count, 10) === 0) {
+      console.log("Seeding default events...");
+      const today = new Date().toISOString().split('T')[0];
+      await dbRun(
+        "INSERT INTO events (name, department, description, date) VALUES (?, ?, ?, ?)",
+        ["Hackathon 2026", "Computer Science", "Join us for a 24-hour coding challenge. Teams of up to 4 can participate.", today]
+      );
+      await dbRun(
+        "INSERT INTO events (name, department, description, date) VALUES (?, ?, ?, ?)",
+        ["Guest Lecture on AI", "Information Technology", "A guest lecture by industry experts on the future of generative artificial intelligence.", today]
+      );
+    }
+
     // Seed default announcements if none exist
     const announcementCount = await dbGet("SELECT COUNT(*) as count FROM announcements");
     if (parseInt(announcementCount.count, 10) === 0) {

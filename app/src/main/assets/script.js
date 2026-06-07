@@ -1,6 +1,11 @@
 // ==========================================
 // CAMPUS HUB - CORE JAVASCRIPT SYSTEM (API VERSION)
 // ==========================================
+
+// --- API Configuration ---
+// If running in WebView (file:// protocol), connect to local server using emulator host address 10.0.2.2.
+// If running in browser (Vite dev server), connect to localhost.
+// If running in WebView or browser, connect to the live Render backend.
 const API_BASE_URL = "https://campushub-api-33mv.onrender.com/api";
 
 // --- Session Helpers ---
@@ -334,6 +339,7 @@ async function loadStudentDashboard() {
   displayUserProfileInfo("student");
   setupDashboardTabs();
   await loadAnnouncements();
+  await loadEvents();
   
   const session = getSession();
   if (!session) return;
@@ -513,6 +519,13 @@ async function loadTeacherDashboard() {
   displayUserProfileInfo("teacher");
   setupDashboardTabs();
   await loadAnnouncements();
+  await loadEvents();
+
+  // Set default date value for events
+  const teacherEventDateInput = document.getElementById("teacher-event-date");
+  if (teacherEventDateInput) {
+    teacherEventDateInput.value = new Date().toISOString().split("T")[0];
+  }
 
   // Set default date value for attendance
   const attDateInput = document.getElementById("attendance-date-select");
@@ -778,6 +791,13 @@ async function loadAdminDashboard() {
   displayUserProfileInfo("admin");
   setupDashboardTabs();
   await loadAnnouncements();
+  await loadEvents();
+
+  // Set default date value for events
+  const adminEventDateInput = document.getElementById("admin-event-date");
+  if (adminEventDateInput) {
+    adminEventDateInput.value = new Date().toISOString().split("T")[0];
+  }
 
   // Render lists & metrics
   await renderAdminStudents();
@@ -1035,7 +1055,7 @@ async function renderAdminTeachers() {
 // Open teacher creation/edit modal
 async function openTeacherModal(teacherId = null) {
   editingTeacherId = teacherId;
-  const modalTitle = document.getElementById("student-modal-title"); 
+  const modalTitle = document.getElementById("student-modal-title"); // NOTE: HTML template uses student-modal-title element sometimes for other titles
 
   const tName = document.getElementById("teacher-field-name");
   const tEmail = document.getElementById("teacher-field-email");
@@ -1437,3 +1457,377 @@ window.closeModal = closeModal;
 window.loadAnnouncements = loadAnnouncements;
 window.postAnnouncement = postAnnouncement;
 window.deleteAnnouncement = deleteAnnouncement;
+
+
+// ==========================================
+// EVENTS MODULE
+// ==========================================
+let allEventsList = []; // Cache events to populate edit modals in memory
+
+async function loadEvents() {
+  const session = getSession();
+  if (!session) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events`);
+    if (!res.ok) throw new Error("Failed to fetch events");
+    allEventsList = await res.json();
+
+    // 1. Student Dashboard View (Cards Grid)
+    const studentEventsList = document.getElementById("student-events-list");
+    if (studentEventsList) {
+      if (allEventsList.length === 0) {
+        studentEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px; border:1px dashed rgba(255,255,255,0.1); grid-column: 1 / -1;">No active events posted yet.</div>`;
+      } else {
+        studentEventsList.innerHTML = allEventsList.map(ev => {
+          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric"
+          });
+          return `
+            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
+                  <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px;">${ev.department}</span>
+                </div>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
+                  <span>📅 Date: <strong>${ev.date}</strong></span>
+                  <span>Posted: <strong>${createdDateStr}</strong></span>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; padding: 0.5rem;" onclick="window.openEventRegisterModal(${ev.id})">Register for Event</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // 2. Teacher Dashboard View (Management List)
+    const teacherEventsList = document.getElementById("teacher-events-list");
+    if (teacherEventsList) {
+      if (allEventsList.length === 0) {
+        teacherEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; grid-column: 1 / -1;">No events posted yet.</div>`;
+      } else {
+        teacherEventsList.innerHTML = allEventsList.map(ev => {
+          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric"
+          });
+          return `
+            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between; margin-bottom: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
+                  <span class="badge badge-success">${ev.department}</span>
+                </div>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                  <span style="color: var(--text-muted);">📅 Date: <strong>${ev.date}</strong></span>
+                  <span style="color: var(--text-muted); font-size: 0.75rem;">Posted: <strong>${createdDateStr}</strong></span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; width: auto;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">Registrations</button>
+                  <button class="btn-action" title="Edit Event" onclick="window.openEditEventModal(${ev.id})">✏️</button>
+                  <button class="btn-action delete" title="Delete Event" onclick="window.deleteEvent(${ev.id})">🗑️</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // 3. Admin Dashboard View (Management List)
+    const adminEventsList = document.getElementById("admin-events-list");
+    if (adminEventsList) {
+      if (allEventsList.length === 0) {
+        adminEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; grid-column: 1 / -1;">No events posted yet.</div>`;
+      } else {
+        adminEventsList.innerHTML = allEventsList.map(ev => {
+          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
+            month: "short", day: "numeric"
+          });
+          return `
+            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between; margin-bottom: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
+                  <span class="badge badge-success">${ev.department}</span>
+                </div>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+              </div>
+              <div style="display: justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                  <span style="color: var(--text-muted);">📅 Date: <strong>${ev.date}</strong></span>
+                  <span style="color: var(--text-muted); font-size: 0.75rem;">Posted: <strong>${createdDateStr}</strong></span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; width: auto;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">Registrations</button>
+                  <button class="btn-action" title="Edit Event" onclick="window.openEditEventModal(${ev.id})">✏️</button>
+                  <button class="btn-action delete" title="Delete Event" onclick="window.deleteEvent(${ev.id})">🗑️</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+  } catch (err) {
+    console.error("Error loading events:", err);
+  }
+}
+
+async function postEvent(role) {
+  const session = getSession();
+  if (!session) return;
+
+  let nameInput = null;
+  let deptInput = null;
+  let descInput = null;
+  let dateInput = null;
+
+  if (role === "admin") {
+    nameInput = document.getElementById("admin-event-name");
+    deptInput = document.getElementById("admin-event-dept");
+    descInput = document.getElementById("admin-event-desc");
+    dateInput = document.getElementById("admin-event-date");
+  } else if (role === "teacher") {
+    nameInput = document.getElementById("teacher-event-name");
+    deptInput = document.getElementById("teacher-event-dept");
+    descInput = document.getElementById("teacher-event-desc");
+    dateInput = document.getElementById("teacher-event-date");
+  }
+
+  if (!nameInput || !deptInput || !descInput || !dateInput) return;
+
+  const name = nameInput.value.trim();
+  const department = deptInput.value.trim();
+  const description = descInput.value.trim();
+  const date = dateInput.value || new Date().toISOString().split("T")[0];
+
+  if (!name || !department || !description) {
+    showToast("Please fill in event name, department and description", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, department, description, date })
+    });
+
+    if (!res.ok) throw new Error("Failed to post event");
+
+    nameInput.value = "";
+    deptInput.value = "";
+    descInput.value = "";
+    dateInput.value = new Date().toISOString().split("T")[0]; // reset to default today
+    
+    showToast("Event published successfully!");
+    
+    // Close modal if present
+    if (role === "admin") {
+      closeModal("event-modal");
+    } else if (role === "teacher") {
+      closeModal("teacher-event-modal");
+    }
+
+    await loadEvents();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+function openEditEventModal(id) {
+  const ev = allEventsList.find(e => e.id === id);
+  if (!ev) return;
+
+  const editIdInput = document.getElementById("edit-event-id");
+  const editNameInput = document.getElementById("edit-event-name");
+  const editDeptInput = document.getElementById("edit-event-dept");
+  const editDescInput = document.getElementById("edit-event-desc");
+  const editDateInput = document.getElementById("edit-event-date");
+
+  if (editIdInput && editNameInput && editDeptInput && editDescInput && editDateInput) {
+    editIdInput.value = ev.id;
+    editNameInput.value = ev.name;
+    editDeptInput.value = ev.department;
+    editDescInput.value = ev.description;
+    editDateInput.value = ev.date;
+    openModal("edit-event-modal");
+  }
+}
+
+async function updateEvent() {
+  const id = document.getElementById("edit-event-id")?.value;
+  const name = document.getElementById("edit-event-name")?.value.trim();
+  const department = document.getElementById("edit-event-dept")?.value.trim();
+  const description = document.getElementById("edit-event-desc")?.value.trim();
+  const date = document.getElementById("edit-event-date")?.value;
+
+  if (!id || !name || !department || !description || !date) {
+    showToast("Please fill in all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, department, description, date })
+    });
+
+    if (!res.ok) throw new Error("Failed to update event");
+
+    showToast("Event updated successfully!");
+    closeModal("edit-event-modal");
+    await loadEvents();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function deleteEvent(id) {
+  if (!confirm("Are you sure you want to delete this event? All registrations will be deleted.")) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!res.ok) throw new Error("Failed to delete event");
+
+    showToast("Event deleted successfully!");
+    await loadEvents();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function openEventRegisterModal(eventId) {
+  const ev = allEventsList.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const regEventIdInput = document.getElementById("register-event-id");
+  const regTitle = document.getElementById("register-event-title");
+  
+  if (regEventIdInput && regTitle) {
+    regEventIdInput.value = eventId;
+    regTitle.textContent = ev.name;
+
+    // Pre-fill profile info if student is logged in
+    const session = getSession();
+    if (session && session.role === "student") {
+      try {
+        const res = await fetch(`${API_BASE_URL}/students/${session.userId}`);
+        if (res.ok) {
+          const stud = await res.json();
+          const nameInput = document.getElementById("register-full-name");
+          const rollInput = document.getElementById("register-roll-no");
+          const deptInput = document.getElementById("register-department");
+          
+          if (nameInput) nameInput.value = stud.username;
+          if (rollInput) rollInput.value = stud.profile.rollNo;
+          if (deptInput) deptInput.value = stud.profile.class.split(" - ")[0] || ""; // Guess dept from class (e.g. Computer Science)
+        }
+      } catch (err) {
+        console.error("Failed to pre-fill registration info:", err);
+      }
+    }
+
+    openModal("register-event-modal");
+  }
+}
+
+async function submitEventRegistration(e) {
+  if (e) e.preventDefault();
+
+  const eventId = document.getElementById("register-event-id")?.value;
+  const fullName = document.getElementById("register-full-name")?.value.trim();
+  const rollNo = document.getElementById("register-roll-no")?.value.trim();
+  const department = document.getElementById("register-department")?.value.trim();
+  const year = document.getElementById("register-year")?.value;
+  const whatsapp = document.getElementById("register-whatsapp")?.value.trim();
+
+  if (!eventId || !fullName || !rollNo || !department || !year || !whatsapp) {
+    showToast("Please fill in all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${eventId}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullName, rollNo, department, year, whatsapp })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to register");
+
+    showToast("Successfully registered for event!");
+    closeModal("register-event-modal");
+    
+    // Clear registration inputs
+    document.getElementById("register-full-name").value = "";
+    document.getElementById("register-roll-no").value = "";
+    document.getElementById("register-department").value = "";
+    document.getElementById("register-year").value = "";
+    document.getElementById("register-whatsapp").value = "";
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}
+
+async function viewEventRegistrations(eventId, eventName) {
+  const regTitle = document.getElementById("registrations-modal-title");
+  const tableBody = document.getElementById("registrations-modal-table-body");
+
+  if (regTitle) regTitle.textContent = `Registrations: ${eventName}`;
+  if (!tableBody) return;
+
+  tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Loading registrations...</td></tr>`;
+  openModal("registrations-modal");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${eventId}/registrations`);
+    if (!res.ok) throw new Error("Failed to fetch registrations");
+    const regs = await res.json();
+
+    if (regs.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No registrations found for this event yet.</td></tr>`;
+    } else {
+      tableBody.innerHTML = regs.map((r, index) => {
+        const dateStr = new Date(r.createdAt).toLocaleDateString(undefined, {
+          month: "short", day: "numeric"
+        });
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td><strong>${r.fullName}</strong></td>
+            <td>${r.rollNo}</td>
+            <td>${r.department}</td>
+            <td>${r.year}</td>
+            <td><a href="https://wa.me/${r.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" style="color: #25D366; text-decoration: none; font-weight:600;">📱 ${r.whatsapp}</a></td>
+          </tr>
+        `;
+      }).join("");
+    }
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger);">${err.message}</td></tr>`;
+  }
+}
+
+window.loadEvents = loadEvents;
+window.postEvent = postEvent;
+window.openEditEventModal = openEditEventModal;
+window.updateEvent = updateEvent;
+window.deleteEvent = deleteEvent;
+window.openEventRegisterModal = openEventRegisterModal;
+window.submitEventRegistration = submitEventRegistration;
+window.viewEventRegistrations = viewEventRegistrations;

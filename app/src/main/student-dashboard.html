@@ -36,6 +36,11 @@
             <span>💯</span> Marks
           </a>
         </li>
+        <li class="sidebar-menu-item">
+          <a data-tab="events">
+            <span>📅</span> Events
+          </a>
+        </li>
       </ul>
       <div class="sidebar-footer">
         <li class="sidebar-menu-item" style="list-style: none;">
@@ -196,6 +201,20 @@
           </div>
         </section>
 
+        <!-- ========================================== -->
+        <!-- TAB 5: EVENTS -->
+        <!-- ========================================== -->
+        <section id="events" class="tab-section">
+          <div class="section-card">
+            <div class="section-header">
+              <h3 class="section-title"><span>📅</span> Upcoming Events</h3>
+            </div>
+            <div id="student-events-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-top: 1rem;">
+              <!-- Rendered dynamically from script.js -->
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -221,6 +240,47 @@
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" onclick="window.closeModal('profile-modal');">Cancel</button>
           <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Event Registration Modal -->
+  <div class="modal-overlay" id="register-event-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="window.closeModal('register-event-modal');">&times;</button>
+      <h3 class="modal-title">Register for Event: <span id="register-event-title" style="color: var(--primary);">Event Name</span></h3>
+      <form id="event-registration-form" onsubmit="window.submitEventRegistration(event);">
+        <input type="hidden" id="register-event-id">
+        <div class="form-group">
+          <label class="form-label" for="register-full-name">Full Name</label>
+          <input type="text" id="register-full-name" class="form-control" placeholder="Enter your full name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-roll-no">Roll Number</label>
+          <input type="text" id="register-roll-no" class="form-control" placeholder="Enter your roll number" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-department">Department</label>
+          <input type="text" id="register-department" class="form-control" placeholder="e.g. Computer Science" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-year">Year of Study</label>
+          <select id="register-year" class="form-control" required>
+            <option value="" disabled selected>Select your year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-whatsapp">WhatsApp Number</label>
+          <input type="text" id="register-whatsapp" class="form-control" placeholder="e.g. +91 9876543210" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="window.closeModal('register-event-modal');">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Registration</button>
         </div>
       </form>
     </div>
