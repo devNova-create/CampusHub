@@ -17,14 +17,27 @@ async function getFullStudentData(studentId) {
   const attendance = await dbAll("SELECT date, status FROM attendance WHERE student_id = ? ORDER BY date DESC", [studentId]);
   const dbMarks = await dbAll("SELECT subject, score, max_score as maxScore FROM marks WHERE student_id = ?", [studentId]);
 
+  const mappedProfile = profile ? {
+    rollNo: profile.rollNo || profile.rollno || 'Not Assigned',
+    class: profile.class || 'Not Assigned',
+    phone: profile.phone || 'Not Assigned',
+    address: profile.address || 'Not Assigned'
+  } : { rollNo: 'Not Assigned', class: 'Not Assigned', phone: 'Not Assigned', address: 'Not Assigned' };
+
+  const mappedMarks = (dbMarks || []).map(m => ({
+    subject: m.subject,
+    score: m.score,
+    maxScore: m.maxScore !== undefined ? m.maxScore : m.maxscore
+  }));
+
   return {
     id: user.id,
     username: user.username,
     email: user.email,
     password: user.password,
-    profile: profile || { rollNo: 'Not Assigned', class: 'Not Assigned', phone: 'Not Assigned', address: 'Not Assigned' },
+    profile: mappedProfile,
     attendance: attendance || [],
-    marks: dbMarks || []
+    marks: mappedMarks
   };
 }
 
@@ -354,7 +367,15 @@ app.get('/api/teachers', async (req, res) => {
     const teachers = await dbAll(
       "SELECT id as teacherId, username, password, name, email, department FROM users WHERE role = 'teacher'"
     );
-    res.json(teachers);
+    const mapped = teachers.map(t => ({
+      teacherId: t.teacherId || t.teacherid,
+      username: t.username,
+      password: t.password,
+      name: t.name,
+      email: t.email,
+      department: t.department
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -465,7 +486,15 @@ app.post('/api/marks', async (req, res) => {
 app.get('/api/announcements', async (req, res) => {
   try {
     const announcements = await dbAll("SELECT id, title, content, author_name as authorName, author_role as authorRole, created_at as createdAt FROM announcements ORDER BY id DESC");
-    res.json(announcements);
+    const mapped = announcements.map(ann => ({
+      id: ann.id,
+      title: ann.title,
+      content: ann.content,
+      authorName: ann.authorName || ann.authorname,
+      authorRole: ann.authorRole || ann.authorrole,
+      createdAt: ann.createdAt || ann.createdat
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -508,7 +537,15 @@ app.delete('/api/announcements/:id', async (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     const events = await dbAll("SELECT id, name, department, description, date, created_at as createdAt FROM events ORDER BY id DESC");
-    res.json(events);
+    const mapped = events.map(ev => ({
+      id: ev.id,
+      name: ev.name,
+      department: ev.department,
+      description: ev.description,
+      date: ev.date,
+      createdAt: ev.createdAt || ev.createdat
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -593,7 +630,16 @@ app.get('/api/events/:id/registrations', async (req, res) => {
       "SELECT id, full_name as fullName, roll_no as rollNo, department, year, whatsapp, created_at as createdAt FROM event_registrations WHERE event_id = ? ORDER BY id DESC",
       [id]
     );
-    res.json(registrations);
+    const mapped = registrations.map(r => ({
+      id: r.id,
+      fullName: r.fullName || r.fullname,
+      rollNo: r.rollNo || r.rollno,
+      department: r.department,
+      year: r.year,
+      whatsapp: r.whatsapp,
+      createdAt: r.createdAt || r.createdat
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

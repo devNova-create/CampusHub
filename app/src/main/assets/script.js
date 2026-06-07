@@ -21,6 +21,26 @@ function clearSession() {
   localStorage.removeItem("campushub_session");
 }
 
+function formatDate(dateInput) {
+  if (!dateInput) return "Recent";
+  const normalized = typeof dateInput === "string" ? dateInput.replace(" ", "T") : dateInput;
+  const d = new Date(normalized);
+  if (isNaN(d.getTime())) return "Recent";
+  return d.toLocaleDateString(undefined, {
+    month: "short", day: "numeric"
+  });
+}
+
+function formatDateTime(dateInput) {
+  if (!dateInput) return "Recent";
+  const normalized = typeof dateInput === "string" ? dateInput.replace(" ", "T") : dateInput;
+  const d = new Date(normalized);
+  if (isNaN(d.getTime())) return "Recent";
+  return d.toLocaleDateString(undefined, {
+    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+}
+
 // --- Customized Toast Notifications ---
 function showToast(message, type = "success") {
   let container = document.getElementById("toast-container");
@@ -595,7 +615,10 @@ async function loadTeacherDashboard() {
     try {
       const res = await fetch(`${API_BASE_URL}/teachers`);
       const teachers = await res.json();
-      const currentTeacher = teachers.find(t => t.teacherId === tSession.userId);
+      const currentTeacher = teachers.find(t => {
+        const tId = t.teacherId || t.teacherid;
+        return tId && tSession.userId && tId.toUpperCase() === tSession.userId.toUpperCase();
+      });
       
       if (currentTeacher) {
         tProfileFields.innerHTML = `
@@ -1270,9 +1293,7 @@ async function loadAnnouncements() {
         studentList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px; border:1px dashed rgba(255,255,255,0.1);">No announcements posted yet.</div>`;
       } else {
         studentList.innerHTML = announcements.map(ann => {
-          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-          });
+          const dateStr = formatDateTime(ann.createdAt);
           const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
           const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
           
@@ -1285,7 +1306,10 @@ async function loadAnnouncements() {
               <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
                 <span>By: <strong>${ann.authorName}</strong></span>
-                <span>${dateStr}</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>${dateStr}</span>
+                </span>
               </div>
             </div>
           `;
@@ -1300,9 +1324,7 @@ async function loadAnnouncements() {
         teacherList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem;">No announcements posted yet.</div>`;
       } else {
         teacherList.innerHTML = announcements.map(ann => {
-          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-          });
+          const dateStr = formatDateTime(ann.createdAt);
           const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
           const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
 
@@ -1315,7 +1337,10 @@ async function loadAnnouncements() {
               <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
                 <span>By: <strong>${ann.authorName}</strong></span>
-                <span>${dateStr}</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>${dateStr}</span>
+                </span>
               </div>
             </div>
           `;
@@ -1330,9 +1355,7 @@ async function loadAnnouncements() {
         adminList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem;">No announcements posted yet.</div>`;
       } else {
         adminList.innerHTML = announcements.map(ann => {
-          const dateStr = new Date(ann.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-          });
+          const dateStr = formatDateTime(ann.createdAt);
           const badgeClass = ann.authorRole === "admin" ? "badge-danger" : "badge-success";
           const badgeLabel = ann.authorRole === "admin" ? "Admin" : "Teacher";
 
@@ -1343,22 +1366,23 @@ async function loadAnnouncements() {
                   <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ann.title}</h4>
                   <span class="badge ${badgeClass}" style="margin-top: 0.25rem; display: inline-block;">${badgeLabel}</span>
                 </div>
-                <button class="btn-action delete" title="Delete Announcement" onclick="window.deleteAnnouncement(${ann.id})" style="flex-shrink: 0;">🗑️</button>
+                <button class="btn-action delete" title="Delete Announcement" onclick="window.deleteAnnouncement(${ann.id})" style="flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); background: rgba(239,68,68,0.08);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
               </div>
               <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ann.content}</p>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
                 <span>By: <strong>${ann.authorName}</strong></span>
-                <span>${dateStr}</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>${dateStr}</span>
+                </span>
               </div>
             </div>
           `;
         }).join("");
       }
     }
-
-  } catch (err) {
-    console.error("Error rendering announcements:", err);
-  }
 }
 
 async function postAnnouncement(role) {
@@ -1480,24 +1504,29 @@ async function loadEvents() {
         studentEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px; border:1px dashed rgba(255,255,255,0.1); grid-column: 1 / -1;">No active events posted yet.</div>`;
       } else {
         studentEventsList.innerHTML = allEventsList.map(ev => {
-          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric"
-          });
+          const createdDateStr = formatDate(ev.createdAt || ev.createdat);
+          const eventDateStr = ev.date;
           return `
-            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between;">
+            <div class="event-card" style="padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
-                  <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px;">${ev.department}</span>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                  <h4 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 600; line-height: 1.3;">${ev.name}</h4>
+                  <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${ev.department}</span>
                 </div>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
-                  <span>📅 Date: <strong>${ev.date}</strong></span>
-                  <span>Posted: <strong>${createdDateStr}</strong></span>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; margin-top: auto;">
+                <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.8rem; color: var(--text-muted);">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Event Date: <strong style="color: var(--text-primary);">${eventDateStr}</strong></span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Posted: <strong style="color: var(--text-muted);">${createdDateStr}</strong></span>
+                  </div>
                 </div>
-                <button class="btn btn-primary" style="width: 100%; padding: 0.5rem;" onclick="window.openEventRegisterModal(${ev.id})">Register for Event</button>
+                <button class="btn btn-primary" style="width: 100%; padding: 0.6rem; margin-top: 0.25rem; font-size: 0.9rem;" onclick="window.openEventRegisterModal(${ev.id})">Register for Event</button>
               </div>
             </div>
           `;
@@ -1512,27 +1541,43 @@ async function loadEvents() {
         teacherEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; grid-column: 1 / -1;">No events posted yet.</div>`;
       } else {
         teacherEventsList.innerHTML = allEventsList.map(ev => {
-          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric"
-          });
+          const createdDateStr = formatDate(ev.createdAt || ev.createdat);
+          const eventDateStr = ev.date;
           return `
-            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between; margin-bottom: 1rem;">
+            <div class="event-card" style="padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.15); margin-bottom: 1.25rem;">
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
-                  <span class="badge badge-success">${ev.department}</span>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                  <h4 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 600; line-height: 1.3;">${ev.name}</h4>
+                  <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${ev.department}</span>
                 </div>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem;">
-                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                  <span style="color: var(--text-muted);">📅 Date: <strong>${ev.date}</strong></span>
-                  <span style="color: var(--text-muted); font-size: 0.75rem;">Posted: <strong>${createdDateStr}</strong></span>
+              
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; margin-top: auto;">
+                <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.8rem; color: var(--text-muted);">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Event Date: <strong style="color: var(--text-primary);">${eventDateStr}</strong></span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Posted: <strong style="color: var(--text-muted);">${createdDateStr}</strong></span>
+                  </div>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                  <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; width: auto;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">Registrations</button>
-                  <button class="btn-action" title="Edit Event" onclick="window.openEditEventModal(${ev.id})">✏️</button>
-                  <button class="btn-action delete" title="Delete Event" onclick="window.deleteEvent(${ev.id})">🗑️</button>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem;">
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>View Registrations</span>
+                  </button>
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; border-color: rgba(255,255,255,0.15);" onclick="window.openEditEventModal(${ev.id})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
+                    <span>Edit Event</span>
+                  </button>
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="window.deleteEvent(${ev.id})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <span>Delete Event</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1548,27 +1593,43 @@ async function loadEvents() {
         adminEventsList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1.5rem; grid-column: 1 / -1;">No events posted yet.</div>`;
       } else {
         adminEventsList.innerHTML = allEventsList.map(ev => {
-          const createdDateStr = new Date(ev.createdAt).toLocaleDateString(undefined, {
-            month: "short", day: "numeric"
-          });
+          const createdDateStr = formatDate(ev.createdAt || ev.createdat);
+          const eventDateStr = ev.date;
           return `
-            <div class="event-card" style="padding: 1.25rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between; margin-bottom: 1rem;">
+            <div class="event-card" style="padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.15); margin-bottom: 1.25rem;">
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                  <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 600;">${ev.name}</h4>
-                  <span class="badge badge-success">${ev.department}</span>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                  <h4 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 600; line-height: 1.3;">${ev.name}</h4>
+                  <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${ev.department}</span>
                 </div>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${ev.description}</p>
               </div>
-              <div style="display: justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem;">
-                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                  <span style="color: var(--text-muted);">📅 Date: <strong>${ev.date}</strong></span>
-                  <span style="color: var(--text-muted); font-size: 0.75rem;">Posted: <strong>${createdDateStr}</strong></span>
+              
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; margin-top: auto;">
+                <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.8rem; color: var(--text-muted);">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Event Date: <strong style="color: var(--text-primary);">${eventDateStr}</strong></span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Posted: <strong style="color: var(--text-muted);">${createdDateStr}</strong></span>
+                  </div>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                  <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; width: auto;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">Registrations</button>
-                  <button class="btn-action" title="Edit Event" onclick="window.openEditEventModal(${ev.id})">✏️</button>
-                  <button class="btn-action delete" title="Delete Event" onclick="window.deleteEvent(${ev.id})">🗑️</button>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem;">
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.viewEventRegistrations(${ev.id}, '${ev.name.replace(/'/g, "\\'")}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>View Registrations</span>
+                  </button>
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; border-color: rgba(255,255,255,0.15);" onclick="window.openEditEventModal(${ev.id})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
+                    <span>Edit Event</span>
+                  </button>
+                  <button class="btn btn-outline" style="width: 100%; padding: 0.55rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; border-color: rgba(239,68,68,0.2); color: var(--danger);" onclick="window.deleteEvent(${ev.id})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <span>Delete Event</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1721,25 +1782,18 @@ async function openEventRegisterModal(eventId) {
     regEventIdInput.value = eventId;
     regTitle.textContent = ev.name;
 
-    // Pre-fill profile info if student is logged in
-    const session = getSession();
-    if (session && session.role === "student") {
-      try {
-        const res = await fetch(`${API_BASE_URL}/students/${session.userId}`);
-        if (res.ok) {
-          const stud = await res.json();
-          const nameInput = document.getElementById("register-full-name");
-          const rollInput = document.getElementById("register-roll-no");
-          const deptInput = document.getElementById("register-department");
-          
-          if (nameInput) nameInput.value = stud.username;
-          if (rollInput) rollInput.value = stud.profile.rollNo;
-          if (deptInput) deptInput.value = stud.profile.class.split(" - ")[0] || ""; // Guess dept from class (e.g. Computer Science)
-        }
-      } catch (err) {
-        console.error("Failed to pre-fill registration info:", err);
-      }
-    }
+    // Clear registration fields to let placeholders act as guide without pre-filled default values
+    const nameInput = document.getElementById("register-full-name");
+    const rollInput = document.getElementById("register-roll-no");
+    const deptInput = document.getElementById("register-department");
+    const yearInput = document.getElementById("register-year");
+    const whatsappInput = document.getElementById("register-whatsapp");
+
+    if (nameInput) nameInput.value = "";
+    if (rollInput) rollInput.value = "";
+    if (deptInput) deptInput.value = "";
+    if (yearInput) yearInput.value = "";
+    if (whatsappInput) whatsappInput.value = "";
 
     openModal("register-event-modal");
   }
@@ -1803,9 +1857,7 @@ async function viewEventRegistrations(eventId, eventName) {
       tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No registrations found for this event yet.</td></tr>`;
     } else {
       tableBody.innerHTML = regs.map((r, index) => {
-        const dateStr = new Date(r.createdAt).toLocaleDateString(undefined, {
-          month: "short", day: "numeric"
-        });
+        const dateStr = formatDate(r.createdAt || r.createdat);
         return `
           <tr>
             <td>${index + 1}</td>
@@ -1813,7 +1865,12 @@ async function viewEventRegistrations(eventId, eventName) {
             <td>${r.rollNo}</td>
             <td>${r.department}</td>
             <td>${r.year}</td>
-            <td><a href="https://wa.me/${r.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" style="color: #25D366; text-decoration: none; font-weight:600;">📱 ${r.whatsapp}</a></td>
+            <td>
+              <a href="https://wa.me/${r.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" style="color: #25D366; text-decoration: none; font-weight:600; display: inline-flex; align-items: center; gap: 4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #25D366; vertical-align: middle;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <span>${r.whatsapp}</span>
+              </a>
+            </td>
           </tr>
         `;
       }).join("");
