@@ -537,13 +537,18 @@ app.delete('/api/announcements/:id', async (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     const events = await dbAll("SELECT id, name, department, description, date, created_at as createdAt FROM events ORDER BY id DESC");
-    const mapped = events.map(ev => ({
-      id: ev.id,
-      name: ev.name,
-      department: ev.department,
-      description: ev.description,
-      date: ev.date,
-      createdAt: ev.createdAt || ev.createdat
+    const mapped = await Promise.all(events.map(async (ev) => {
+      const regs = await dbAll("SELECT roll_no as rollNo FROM event_registrations WHERE event_id = ?", [ev.id]);
+      const registeredRolls = regs.map(r => r.rollNo || r.rollno);
+      return {
+        id: ev.id,
+        name: ev.name,
+        department: ev.department,
+        description: ev.description,
+        date: ev.date,
+        createdAt: ev.createdAt || ev.createdat,
+        registeredRolls: registeredRolls
+      };
     }));
     res.json(mapped);
   } catch (error) {
@@ -591,6 +596,8 @@ app.put('/api/events/:id', async (req, res) => {
 app.delete('/api/events/:id', async (req, res) => {
   const { id } = req.params;
   try {
+    // Explicitly clean up registrations first to bypass any legacy foreign key constraint limitations on Render
+    await dbRun("DELETE FROM event_registrations WHERE event_id = ?", [id]);
     await dbRun("DELETE FROM events WHERE id = ?", [id]);
     res.json({ success: true });
   } catch (error) {

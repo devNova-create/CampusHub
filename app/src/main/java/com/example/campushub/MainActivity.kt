@@ -2,6 +2,7 @@ package com.example.campushub
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         webView.settings.allowUniversalAccessFromFileURLs = true
 
         webView.webViewClient = WebViewClient()
+        webView.webChromeClient = WebChromeClient()
 
         // Disable hardware acceleration to prevent black screen rendering issues in the emulator
         webView.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)

@@ -1495,6 +1495,19 @@ async function loadEvents() {
   const session = getSession();
   if (!session) return;
 
+  let studentRollNo = "";
+  if (session.role === "student") {
+    try {
+      const studentRes = await fetch(`${API_BASE_URL}/students/${session.userId}`);
+      if (studentRes.ok) {
+        const studentData = await studentRes.json();
+        studentRollNo = studentData.profile?.rollNo || studentData.profile?.rollno || "";
+      }
+    } catch (e) {
+      console.error("Error fetching student roll number:", e);
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/events`);
     if (!res.ok) throw new Error("Failed to fetch events");
@@ -1509,6 +1522,12 @@ async function loadEvents() {
         studentEventsList.innerHTML = allEventsList.map(ev => {
           const createdDateStr = formatDate(ev.createdAt || ev.createdat);
           const eventDateStr = ev.date;
+          
+          const isRegistered = ev.registeredRolls && ev.registeredRolls.some(r => r.toLowerCase() === studentRollNo.toLowerCase());
+          const buttonHtml = isRegistered
+            ? `<button class="btn" style="width: 100%; padding: 0.6rem; margin-top: 0.25rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); cursor: not-allowed;" disabled>Registered</button>`
+            : `<button class="btn btn-primary" style="width: 100%; padding: 0.6rem; margin-top: 0.25rem; font-size: 0.9rem;" onclick="window.openEventRegisterModal(${ev.id})">Register for Event</button>`;
+
           return `
             <div class="event-card" style="padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -1529,7 +1548,7 @@ async function loadEvents() {
                     <span>Posted: <strong style="color: var(--text-muted);">${createdDateStr}</strong></span>
                   </div>
                 </div>
-                <button class="btn btn-primary" style="width: 100%; padding: 0.6rem; margin-top: 0.25rem; font-size: 0.9rem;" onclick="window.openEventRegisterModal(${ev.id})">Register for Event</button>
+                ${buttonHtml}
               </div>
             </div>
           `;
